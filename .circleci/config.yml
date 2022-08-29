@@ -2,7 +2,7 @@ version: 2
 jobs:
   build-and-test:
     docker:
-      - image: circleci/rust
+      - image: cimg/rust:1.63.0-node
     environment:
       # Fail the build if there are warnings
       RUSTFLAGS: '-D warnings'
