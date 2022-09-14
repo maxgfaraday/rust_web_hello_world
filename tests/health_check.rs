@@ -1,7 +1,12 @@
-fn spawn_app() {
+use std::net::TcpListener;
 
-    let server = rust_web_hello_world::run().expect("Failed to bind to address");
+fn spawn_app() -> String {
+    let ip = "127.0.0.1";
+    let port = "8000";
+    let url = format!("{}:{}",ip,port);
+    let server = rust_web_hello_world::run(&url).expect("Failed to bind to address");
     let _ = tokio::spawn(server);
+    url
 }
 
 #[tokio::test]
@@ -10,7 +15,7 @@ async fn health_check_works() {
     let client = reqwest::Client::new();
 
     let response = client
-        .get(&format!("{}/health_check", &address))
+        .get(&format!("http://{}/health_check", &address))
         .send()
         .await
         .expect("Failed to execute request");
