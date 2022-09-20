@@ -1,5 +1,6 @@
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use actix_web::dev::Server;
+use std::net::TcpListener;
 
 /**
 This is our initial API call to greet the user
@@ -19,13 +20,13 @@ async fn health_check() -> HttpResponse {
 /**
 Runs the HTTP Server of the API
 */
-pub fn run(address: &str) -> Result<Server,std::io::Error> {
+pub fn run(listener: TcpListener) -> Result<Server,std::io::Error> {
     let server = HttpServer::new(|| {
         App::new()
             .route("/", web::get().to(greet))
             .route("/health_check", web::get().to(health_check))
     })
-        .bind(address)?
+        .listen(listener)?
         .run();
     Ok(server)
 }
