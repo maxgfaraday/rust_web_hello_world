@@ -17,14 +17,19 @@ async fn health_check() -> HttpResponse {
     HttpResponse::Ok().finish()
 }
 
+async fn subscribe() -> HttpResponse {
+    HttpResponse::Ok().finish()
+}
+
 /**
 Runs the HTTP Server of the API
 */
 pub fn run(listener: TcpListener) -> Result<Server,std::io::Error> {
     let server = HttpServer::new(|| {
         App::new()
-            .route("/", web::get().to(greet))
-            .route("/health_check", web::get().to(health_check))
+            .route("/",              web::get().to(greet))
+            .route("/health_check",  web::get().to(health_check))
+            .route("/subscriptions", web::post().to(subscribe))
     })
         .listen(listener)?
         .run();
