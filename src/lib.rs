@@ -2,6 +2,13 @@ use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use actix_web::dev::Server;
 use std::net::TcpListener;
 
+
+#[derive(serde::Deserialize)]
+struct FormData {
+    email: String,
+    name: String
+}
+
 /**
 This is our initial API call to greet the user
 */
@@ -17,7 +24,9 @@ async fn health_check() -> HttpResponse {
     HttpResponse::Ok().finish()
 }
 
-async fn subscribe() -> HttpResponse {
+async fn subscribe(form: web::Form<FormData>) -> HttpResponse {
+    println!("email is {}", form.email);
+    println!("name is {}", form.name);
     HttpResponse::Ok().finish()
 }
 
