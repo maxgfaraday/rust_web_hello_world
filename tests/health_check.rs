@@ -1,4 +1,5 @@
 use std::net::TcpListener;
+use rust_web_hello_world::startup;
 
 fn spawn_app() -> String {
     let ip = "127.0.0.1";
@@ -7,7 +8,7 @@ fn spawn_app() -> String {
 
     println!("Spawning server on port: {}", port);
 
-    let server = rust_web_hello_world::run(listener).expect("Failed to bind to address");
+    let server = startup::run(listener).expect("Failed to bind to address");
     let _ = tokio::spawn(server);
     format!("http://127.0.0.1:{}",port)
 }
