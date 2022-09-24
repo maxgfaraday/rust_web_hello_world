@@ -7,6 +7,7 @@ pub struct FormData {
     name: String
 }
 
+//Question: Why does this function have to be async?
 pub async fn subscribe(form: web::Form<FormData>) -> HttpResponse {
     println!("email is {:?}", form.email);
     println!("name is {:?}", form.name);
