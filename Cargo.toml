@@ -19,6 +19,19 @@ regex = "1.6.0"
 reqwest = "0.11"
 tokio = {version = "1", features = ["macros", "rt-multi-thread"]}
 serde = {version = "1", features = ["derive"]}
+config = "0.13"
+
+[dependencies.sqlx]
+version = "0.6"
+default-features = false
+features = [
+    "runtime-actix-rustls",
+    "macros",
+    "postgres",
+    "uuid",
+    "chrono",
+    "migrate"
+]
 
 [dev-dependencies]
 proptest = "1.0.0"
