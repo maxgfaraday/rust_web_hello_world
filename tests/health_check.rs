@@ -1,6 +1,7 @@
 use std::net::TcpListener;
 use rust_web_hello_world::startup;
 use rust_web_hello_world::configuration::get_configuration;
+use sqlx::{PgConnection, Connection};
 
 fn spawn_app() -> String {
     let host = get_configuration().unwrap().service.host;
@@ -31,9 +32,22 @@ async fn health_check_works() {
 
 #[tokio::test]
 async fn subscribe_returns_a_200_for_valid_form_data() {
+    //fire up the service
     let app_address = spawn_app();
+
+    //load up the configuration
+    let configuration = get_configuration().expect("Failed to read the configuration");
+    let connection_string = configuration.database.connection_string();
+
+    //create connection to the database
+    let connection = PgConnection::connect(&connection_string)
+        .await
+        .expect("Failed to connect to Postgres");
+
+    //fire up our web client
     let client = reqwest::Client::new();
 
+    //send our service data.
     let body ="name=le%20guin&email=ursula_le_guin%40gmail.com";
     let response = client
         .post(&format!("{}/subscriptions", &app_address))
