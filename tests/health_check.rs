@@ -1,7 +1,7 @@
 use std::net::TcpListener;
 use rust_web_hello_world::startup;
 use rust_web_hello_world::configuration::get_configuration;
-use sqlx::{PgConnection, Connection, PgPool};
+use sqlx::PgPool;
 
 pub struct TestApp {
     pub address: String,
@@ -50,17 +50,6 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
     //fire up the service
     let app_info = spawn_app().await;
     let app_address = app_info.address;
-
-    //load up the configuration
-    let configuration = get_configuration().expect("Failed to read the configuration");
-    let connection_string = configuration.database.connection_string();
-
-    //create connection to the database
-    let mut connection = PgConnection::connect(&connection_string)
-        .await
-        .expect("Failed to connect to Postgres");
-
-    //fire up our web client
     let client = reqwest::Client::new();
 
     //send our service data.
@@ -76,7 +65,7 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
     assert_eq!(200,response.status().as_u16());
 
     let saved = sqlx::query!("SELECT email, name FROM subscriptions",)
-        .fetch_one(&mut connection)
+        .fetch_one(&app_info.connection_pool)
         .await
         .expect("Failed to fetch saved subscription.");
 
