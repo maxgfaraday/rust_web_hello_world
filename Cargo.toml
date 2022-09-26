@@ -8,29 +8,31 @@ edition = "2021"
 path = "src/lib.rs"
 
 [[bin]]
-path = "src/main.rs"
 name = "rust_web_hello_world"
+path = "src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 actix-web = "4"
-regex = "1.6.0"
+chrono  = "0.4.22"
+config  = "0.13"
+regex   = "1.6.0"
 reqwest = "0.11"
-tokio = {version = "1", features = ["macros", "rt-multi-thread"]}
 serde = {version = "1", features = ["derive"]}
-config = "0.13"
+tokio = {version = "1", features = ["macros", "rt-multi-thread"]}
+uuid  = {version = "1", features = ["v4"]}
 
 [dependencies.sqlx]
 version = "0.6"
 default-features = false
 features = [
-    "runtime-actix-rustls",
-    "macros",
-    "postgres",
-    "uuid",
     "chrono",
-    "migrate"
+    "macros",
+    "migrate",
+    "postgres",
+    "runtime-actix-rustls",
+    "uuid"
 ]
 
 [dev-dependencies]

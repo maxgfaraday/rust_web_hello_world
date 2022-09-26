@@ -1,27 +1,42 @@
 use std::net::TcpListener;
 use rust_web_hello_world::startup;
 use rust_web_hello_world::configuration::get_configuration;
-use sqlx::{PgConnection, Connection};
+use sqlx::{PgConnection, Connection, PgPool};
 
-fn spawn_app() -> String {
-    let host = get_configuration().unwrap().service.host;
+pub struct TestApp {
+    pub address: String,
+    pub connection_pool: PgPool
+}
+
+async fn spawn_app() -> TestApp {
+    let configuration = get_configuration().expect("Failed to load configuration file");
+    let host = configuration.service.host;
     let listener = TcpListener::bind(format!("{}:0",host)).expect("Failed To Bind random port");
     let port = listener.local_addr().unwrap().port();
-
+    let address = format!("http://{}:{}", host, port);
     println!("Spawning server on port: {}", port);
 
-    let server = startup::run(listener).expect("Failed to bind to address");
+    let connection_pool = PgPool::connect(&configuration.database.connection_string())
+        .await
+        .expect("Failed to connect to database");
+
+    let server = startup::run(listener,connection_pool.clone()).expect("Failed to bind to address");
     let _ = tokio::spawn(server);
-    format!("http://{}:{}",host,port)
+    println!("{}",address);
+
+    TestApp {
+        address,
+        connection_pool
+    }
 }
 
 #[tokio::test]
 async fn health_check_works() {
-    let app_address = spawn_app();
+    let app_info = spawn_app().await;
     let client = reqwest::Client::new();
 
     let response = client
-        .get(&format!("{}/health_check", &app_address))
+        .get(&format!("{}/health_check", &app_info.address))
         .send()
         .await
         .expect("Failed to execute request");
@@ -33,7 +48,8 @@ async fn health_check_works() {
 #[tokio::test]
 async fn subscribe_returns_a_200_for_valid_form_data() {
     //fire up the service
-    let app_address = spawn_app();
+    let app_info = spawn_app().await;
+    let app_address = app_info.address;
 
     //load up the configuration
     let configuration = get_configuration().expect("Failed to read the configuration");
@@ -70,7 +86,8 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
 
 #[tokio::test]
 async fn subscribe_returns_a_400_when_data_is_missing() {
-    let app_address = spawn_app();
+    let app_info = spawn_app().await;
+    let app_address = app_info.address;
     let client = reqwest::Client::new();
     let test_cases = vec![
         ("name=le%20guin", "missing the email"),
