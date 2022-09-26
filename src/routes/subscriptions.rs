@@ -28,7 +28,7 @@ VALUES ($1, $2, $3, $4)
         Ok(_) => HttpResponse::Ok().finish(),
         Err(e) => {
             println!("Failed to execute query: {}", e);
-            HttpResponse::Ok().finish()
+            HttpResponse::BadRequest().finish()
         }
     }
 }
