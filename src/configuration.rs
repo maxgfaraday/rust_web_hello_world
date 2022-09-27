@@ -20,21 +20,21 @@ pub struct DatabaseSettings{
 }
 
 impl DatabaseSettings {
-    pub fn connection_string(self) -> String {
+    pub fn connection_string(&self) -> String {
         format!("postgres://{}:{}@{}:{}/{}",
                 self.username,
                 self.password,
                 self.host,
                 self.port,
-                self.database_name)
+                self.database_name).to_string()
     }
 
-    pub fn connection_string_wo_database(self) -> String {
+    pub fn connection_string_wo_database(&self) -> String {
         format!("postgres://{}:{}@{}:{}",
                 self.username,
                 self.password,
                 self.host,
-                self.port)
+                self.port).to_string()
     }
 }
 
