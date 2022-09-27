@@ -1,8 +1,12 @@
-use std::net::TcpListener;
-use rust_web_hello_world::startup;
-use rust_web_hello_world::configuration::{get_configuration, DatabaseSettings};
+use once_cell::sync::Lazy;
+use rust_web_hello_world::configuration as conf;
+use rust_web_hello_world::startup as s;
+use rust_web_hello_world::telemetry as t;
 use sqlx::{PgPool, PgConnection, Connection, Executor};
+use std::net::TcpListener;
 use uuid::Uuid;
+
+static TRACING: Lazy<()> = Lazy::new(|| { t::init_subscriber(t::get_subscriber("test".into(), "debug".into())); });
 
 pub struct TestApp {
     pub address: String,
@@ -10,8 +14,15 @@ pub struct TestApp {
 }
 
 async fn spawn_app() -> TestApp {
-    let mut configuration = get_configuration().expect("Failed to load configuration file");
+    let mut configuration = conf::get_configuration().expect("Failed to load configuration file");
     let host = configuration.service.host;
+
+    //---------------------
+    // Telemetry setup
+    //---------------------
+
+    Lazy::force(&TRACING);
+
 
     //---------------------
     // Service setup
@@ -32,7 +43,7 @@ async fn spawn_app() -> TestApp {
 
     println!("Testing Database: {}",configuration.database.connection_string());
 
-    let server = startup::run(listener,connection_pool.clone()).expect("Failed to bind to address");
+    let server = s::run(listener,connection_pool.clone()).expect("Failed to bind to address");
     let _ = tokio::spawn(server);
     println!("{}",address);
 
@@ -42,7 +53,7 @@ async fn spawn_app() -> TestApp {
     }
 }
 
-pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
+pub async fn configure_database(config: &conf::DatabaseSettings) -> PgPool {
     //Connect to postgres....
     let mut connection = PgConnection::connect(&config.connection_string_wo_database()).await.expect("Failed to connect to Postgres");
 
