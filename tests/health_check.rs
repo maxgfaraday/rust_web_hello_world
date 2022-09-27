@@ -1,7 +1,8 @@
 use std::net::TcpListener;
 use rust_web_hello_world::startup;
-use rust_web_hello_world::configuration::get_configuration;
-use sqlx::PgPool;
+use rust_web_hello_world::configuration::{get_configuration, DatabaseSettings};
+use sqlx::{PgPool, PgConnection, Connection, Executor};
+use uuid::Uuid;
 
 pub struct TestApp {
     pub address: String,
@@ -9,16 +10,27 @@ pub struct TestApp {
 }
 
 async fn spawn_app() -> TestApp {
-    let configuration = get_configuration().expect("Failed to load configuration file");
+    let mut configuration = get_configuration().expect("Failed to load configuration file");
     let host = configuration.service.host;
+
+    //---------------------
+    // Service setup
+    //---------------------
+
     let listener = TcpListener::bind(format!("{}:0",host)).expect("Failed To Bind random port");
     let port = listener.local_addr().unwrap().port();
     let address = format!("http://{}:{}", host, port);
     println!("Spawning server on port: {}", port);
 
-    let connection_pool = PgPool::connect(&configuration.database.connection_string())
-        .await
-        .expect("Failed to connect to database");
+    //---------------------
+    // Database setup
+    //---------------------
+
+    //modify the configuration to have a new,unique database_name
+    configuration.database.database_name = format!("_test_{}",Uuid::new_v4().to_string());
+    let connection_pool = configure_database(&configuration.database).await;
+
+    println!("Testing Database: {}",configuration.database.connection_string());
 
     let server = startup::run(listener,connection_pool.clone()).expect("Failed to bind to address");
     let _ = tokio::spawn(server);
@@ -28,6 +40,20 @@ async fn spawn_app() -> TestApp {
         address,
         connection_pool
     }
+}
+
+pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
+    //Connect to postgres....
+    let mut connection = PgConnection::connect(&config.connection_string_wo_database()).await.expect("Failed to connect to Postgres");
+
+    //Create database
+    connection.execute(format!(r#"CREATE DATABASE "{}";"#,config.database_name).as_str()).await.expect("Failed to create database");
+
+    //Migrate database
+    let connection_pool = PgPool::connect(&config.connection_string()).await.expect("Failed to connect to Postgres");
+    sqlx::migrate!("./migrations").run(&connection_pool).await.expect("Failed to migrate the database");
+
+    connection_pool
 }
 
 #[tokio::test]
