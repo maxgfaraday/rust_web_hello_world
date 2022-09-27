@@ -6,7 +6,13 @@ use sqlx::{PgPool, PgConnection, Connection, Executor};
 use std::net::TcpListener;
 use uuid::Uuid;
 
-static TRACING: Lazy<()> = Lazy::new(|| { t::init_subscriber(t::get_subscriber("test".into(), "debug".into())); });
+static TRACING: Lazy<()> = Lazy::new(|| {
+    if std::env::var("TEST_LOG").is_ok() {
+        t::init_subscriber(t::get_subscriber("test".into(), "debug".into(), std::io::stdout));
+    }else{
+        t::init_subscriber(t::get_subscriber("test".into(), "debug".into(), std::io::sink));
+    }
+});
 
 pub struct TestApp {
     pub address: String,
@@ -18,7 +24,7 @@ async fn spawn_app() -> TestApp {
     let host = configuration.service.host;
 
     //---------------------
-    // Telemetry setup
+    // Telemetry setup (wrapped in a singleton <above>)
     //---------------------
 
     Lazy::force(&TRACING);

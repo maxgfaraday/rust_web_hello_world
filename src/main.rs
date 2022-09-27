@@ -11,7 +11,7 @@ async fn main() -> std::io::Result<()> {
     let configuration = conf::get_configuration().expect("Failed to read configuration");
 
     //logging and tracing setup...
-    t::init_subscriber(t::get_subscriber("rust_web_hello_world".into(), "info".into()));
+    t::init_subscriber(t::get_subscriber("rust_web_hello_world".into(), "info".into(), std::io::stdout));
 
     //database connection setup...
     let connection_pool = PgPool::connect(&configuration.database.connection_string())
