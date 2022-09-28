@@ -11,16 +11,18 @@ pub struct FormData {
     name: String
 }
 
+#[tracing::instrument (
+    name = "Adding a new subscriber",
+    skip(form, connection_pool),
+    fields (
+        request_id = %Uuid::new_v4(),
+        subscriber_name = %form.name,
+        subscriber_email = %form.email
+    )
+)]
 //Question: Why does this function have to be async?
 pub async fn subscribe(form: web::Form<FormData>, connection_pool: web::Data<PgPool>) -> HttpResponse {
-    let request_id = Uuid::new_v4();
-    let request_span = tracing::info_span!("Adding a new subscriber.", %request_id,
-                                           subscriber_name = %form.name,
-                                           subcriber_email = %form.email);
-    let _request_span_guard = request_span.enter();
-
     let query_span = tracing::info_span!("Saving new subscriber details to database");
-
     match sqlx::query!(
         r#"
 INSERT INTO subscriptions (id, email, name, subscribed_at)
