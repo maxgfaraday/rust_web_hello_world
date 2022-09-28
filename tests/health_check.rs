@@ -2,6 +2,7 @@ use once_cell::sync::Lazy;
 use rust_web_hello_world::configuration as conf;
 use rust_web_hello_world::startup as s;
 use rust_web_hello_world::telemetry as t;
+use secrecy::ExposeSecret;
 use sqlx::{PgPool, PgConnection, Connection, Executor};
 use std::net::TcpListener;
 use uuid::Uuid;
@@ -47,7 +48,7 @@ async fn spawn_app() -> TestApp {
     configuration.database.database_name = format!("_test_{}",Uuid::new_v4().to_string());
     let connection_pool = configure_database(&configuration.database).await;
 
-    println!("Testing Database: {}",configuration.database.connection_string());
+    println!("Testing Database: {:#?}",configuration.database.connection_string());
 
     let server = s::run(listener,connection_pool.clone()).expect("Failed to bind to address");
     let _ = tokio::spawn(server);
@@ -61,13 +62,13 @@ async fn spawn_app() -> TestApp {
 
 pub async fn configure_database(config: &conf::DatabaseSettings) -> PgPool {
     //Connect to postgres....
-    let mut connection = PgConnection::connect(&config.connection_string_wo_database()).await.expect("Failed to connect to Postgres");
+    let mut connection = PgConnection::connect(&config.connection_string_wo_database().expose_secret()).await.expect("Failed to connect to Postgres");
 
     //Create database
     connection.execute(format!(r#"CREATE DATABASE "{}";"#,config.database_name).as_str()).await.expect("Failed to create database");
 
     //Migrate database
-    let connection_pool = PgPool::connect(&config.connection_string()).await.expect("Failed to connect to Postgres");
+    let connection_pool = PgPool::connect(&config.connection_string().expose_secret()).await.expect("Failed to connect to Postgres");
     sqlx::migrate!("./migrations").run(&connection_pool).await.expect("Failed to migrate the database");
 
     connection_pool
