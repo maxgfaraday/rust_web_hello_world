@@ -1,0 +1,4 @@
+# Configuration to be used for local development
+
+service:
+  host: "127.0.0.1"
