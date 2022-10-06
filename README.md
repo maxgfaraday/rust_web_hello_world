@@ -1,5 +1,6 @@
 # rust_web_hello_world
 Learning Rust - one step at a time
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/maxgfaraday/rust_web_hello_world/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/maxgfaraday/rust_web_hello_world/tree/main)
 
 Building a simple web service with rust
 
