@@ -14,7 +14,7 @@ RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 ENV SQLX_OFFLINE true
 # Build our project
-RUN cargo build --release --bin rust_web_hello_world
+RUN cargo build --release --bin z2p
 
 FROM debian:bullseye-slim AS runtime
 WORKDIR /app
@@ -24,7 +24,7 @@ RUN apt-get update -y \
         && apt-get autoremove -y \
         && apt-get clean -y \
         && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /app/target/release/rust_web_hello_world myapp
+COPY --from=builder /app/target/release/z2p myapp
 COPY configuration configuration
 ENV APP_ENVIRONMENT production
 ENTRYPOINT ["./myapp"]
