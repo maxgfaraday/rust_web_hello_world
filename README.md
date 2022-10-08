@@ -8,7 +8,7 @@ Building a simple web service with rust
 
 This follows the Rust book [Zero To Production](https://www.zero2prod.com/)
 I suggest you purchase the book and support this really really helpful resource.
-You may also follow along on-line via [Luca's blog](https://www.lpalmieri.com/) that captures much of the [content of the book](https://www.lpalmieri.com/posts/2020-05-24-zero-to-production-0-foreword/#:~:text=Book%20%2D%20Table%20Of%20Contents).
+You may also follow along on-line via [Luca's blog](https://www.lpalmieri.com/) that captures much of the [content of the book](https://www.lpalmieri.com/posts/2020-05-24-zero-to-production-0-foreword/#:~:text=Book%20%2D%20Table%20Of%20Contents). I found it also helpful to checkpoint myself against his [repo](https://github.com/LukeMathWalker/zero-to-production) for the book.
 
 This project and README is me following Luca's book and taking notes about my experience and recording salient points that may make another explorer's journey, maybe a bit easier.
 
