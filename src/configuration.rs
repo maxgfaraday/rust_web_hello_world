@@ -1,5 +1,6 @@
 use serde_aux::field_attributes::deserialize_number_from_string;
 use secrecy::{Secret, ExposeSecret};
+use sqlx::postgres::PgConnectOptions;
 
 #[derive (serde::Deserialize)]
 pub struct Settings{
@@ -25,6 +26,26 @@ pub struct DatabaseSettings{
 }
 
 impl DatabaseSettings {
+    //gets you the connection string...
+    pub fn connection_string_wo_database(&self) -> Secret<String> {
+        Secret::new(format!("postgres://{}:{}@{}:{}",
+                            self.username,
+                            self.password.expose_secret(),
+                            self.host,
+                            self.port))
+    }
+
+    //(preferred)
+    //gets you an object that represents the same information as the connection string
+    pub fn without_db(&self) -> PgConnectOptions{
+        PgConnectOptions::new()
+            .username(&self.username)
+            .password(&self.password.expose_secret())
+            .host(&self.host)
+            .port(self.port)
+    }
+
+    //gets you the connection string... additionally with the database_name included
     pub fn connection_string(&self) -> Secret<String> {
         Secret::new(format!("postgres://{}:{}@{}:{}/{}",
                             self.username,
@@ -34,12 +55,11 @@ impl DatabaseSettings {
                             self.database_name))
     }
 
-    pub fn connection_string_wo_database(&self) -> Secret<String> {
-        Secret::new(format!("postgres://{}:{}@{}:{}",
-                            self.username,
-                            self.password.expose_secret(),
-                            self.host,
-                            self.port))
+    //(preferred)
+    //gets you an object that represents the same information as the connection string
+    //additionally with the database_name incuded
+    pub fn with_db(&self) -> PgConnectOptions {
+        self.without_db().database(&self.database_name)
     }
 }
 
