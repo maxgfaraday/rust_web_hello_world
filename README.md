@@ -100,6 +100,17 @@ That means you are all good. Just for a sanity check docker
 <should see entry>
 ```
 
-## Trouble connecting DO to Github
+To get your service actually up and running we have to do a couple of out-of-band commands:
+* update the application spec
 
-Problem: It is exactly described [here](https://www.lpalmieri.com/posts/2020-11-01-zero-to-production-5-how-to-deploy-a-rust-application/#:~:text=can%20try%20again%3A-,doctl%20apps%20create%20%2D%2Dspec%20spec.yaml,OK%2C%20follow%20their%20instructions%20to%20link%20your%20GitHub%20account.,-Third%20time%27s%20a), but as of this date I have not been able to surmount it despite following the information pointed to by the provided link.
+``` bash
+%> doctl apps update $(doctl apps list | grep z2p | awk '{print $1}') --spec=spec.yaml
+```
+
+* migrate the database to the latest structure
+
+``` bash
+%> DATABASE_URL=[YOUR-DIGITAL-OCEAN-DB-CONNECTION-STRING] sqlx migrate run
+```
+
+And then we are good to go!
