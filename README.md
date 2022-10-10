@@ -114,3 +114,74 @@ To get your service actually up and running we have to do a couple of out-of-ban
 ```
 
 And then we are good to go!
+
+---
+
+## recap
+
+### Dev environment setup...
+* So we started by creating a small project in Rust that is a simple webservice exposing an tiny API.
+* We posted data to it and it records it into a database (postgres).
+
+First set up the database...
+
+* We run Postgres out of a docker container.
+* The `init_db` script does the full stand up of the database
+
+    * fetches the postgres docker image and fires up postgres
+    * creates the database instance "newsletter"
+    * runs the migration that creates the table "subscriptions" in the database instance
+
+We also took the time to write TESTS! so we can run our test suite in the above configuration to sanity check that things are working, like so...
+
+``` bash
+%> TEST_LOG=true cargo test | bunyan
+```
+
+(if we haven't yet built the code test will do so before it runs)
+
+### Package
+
+* We put the small service we wrote inside of a Docker container.
+
+``` bash
+%> docker build --tag maxgfaraday/z2p:milestone_1 --file Dockerfile .
+```
+
+* Then we run it right out of the container.
+
+``` bash
+%> docker run -it --rm -p 8000:8000 maxgfaraday/z2p:milestone_1
+```
+
+* And of course we pushed it to dockerhub, cause - why not
+
+
+``` bash
+%> docker push maxgfaraday/z2p
+```
+
+### CI/CD
+
+* We also created an account on Circle CI and configured it to link to our github repo and get triggered when we push.
+
+(FIXME: this is still a WIP... Circle CI is still failing all the time. It is indeed triggered properly at each push.)
+
+### Cloud Deployment
+
+* For the Cloud we use Digital Ocean... and link Digital Ocean to our github account.
+* We created our Ditgital Ocean account and use `doctl` to created and setup our project via the spec.yaml file
+
+``` bash
+%> doctl apps create --spec "./spec.yaml"
+```
+
+The spec generates the postgres database, sets the ports, etc.
+
+We must run the migration ourselves to set up the database that we have provisioned.
+
+``` bash
+%> DATABASE_URL=postgresql://newsletter:AVNS_83g0ZCunNv6Q...  sqlx migrate run
+```
+
+Now not only is the database provsioned, but now it is also imbued with our migration schema and ready to take data.
