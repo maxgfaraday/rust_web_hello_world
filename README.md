@@ -179,9 +179,35 @@ We also took the time to write TESTS! so we can run our test suite in the above 
 The spec generates the postgres database, sets the ports, etc.
 
 We must run the migration ourselves to set up the database that we have provisioned.
+(sidebar: This seems a bit silly to me. The service should reach out for resources that it needs and polls, with jitter, until the resource is available and then at that point feel free to additionally configure it if necessary. In this case we should poll for the database and then run migrations on it if it has not already been done.)
+
+(sidebar: I have not been able to find the `doctl` command for getting the database connection information.  It seems I have to go to the user interface on the web to get this information)
 
 ``` bash
 %> DATABASE_URL=postgresql://newsletter:AVNS_83g0ZCunNv6Q...  sqlx migrate run
 ```
 
-Now not only is the database provsioned, but now it is also imbued with our migration schema and ready to take data.
+Now not only is the database provisioned, but now it is also imbued with our migration schema and ready to take data.
+
+---
+
+Quick sanity check:
+
+Run these lil curls and check that you get back 200s
+
+* API:(top level)
+``` bash
+curl -i $(doctl apps list | grep z2p | awk '{print $3}')/health_check
+```
+
+
+* API:health
+``` bash
+curl -i $(doctl apps list | grep z2p | awk '{print $3}')/health_check
+```
+
+
+* API: subscriptions
+``` bash
+curl -i -X POST -d 'email=max.faraday_0001@gmail.com&name=Max Faraday' $(doctl apps list | grep z2p | awk '{print $3}')/subscriptions
+```
